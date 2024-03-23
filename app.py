@@ -1,8 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import pickle
+import pandas as pd
+import os
 
 app = Flask(__name__)
 
@@ -26,13 +28,19 @@ model.fit(X_train, y_train)
 with open('model.pkl', 'wb') as model_file:
     pickle.dump(model, model_file)
 
+@app.route('/')
+def index():
+    # Serve the index.html file
+    return send_from_directory(os.path.join(app.root_path, ''), '/templates/index.html')
+
 @app.route('/predict', methods=['POST'])
 def predict():
+    
     # Get data from request
     data = request.json
 
     # Make prediction
-    prediction = model.predict([data['features']])
+    prediction = model.predict([list(data.values())])
 
     # Return prediction
     return jsonify({'prediction': prediction.tolist()})
